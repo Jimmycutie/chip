@@ -17,16 +17,19 @@ export default function Home() {
   const [input, setInput] = useState('')
   const [emails, setEmails] = useState<Email[]>([])
   const [inpFocus, setInpFocus] = useState<boolean>(false)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const dropdownRef = useRef<HTMLInputElement>(null)
+  const isMouseOverDropdown = useRef(false);
 
   //Fuctions to add and delete the chips
   const handleAdd = (id:number) => {
+    for(var i=0; i<emails.length; i++){
+      if(emails[i].id === id){
+        return
+      }
+    }
     const updatedEmails = [
       ...emails, data[id]
     ]
     setEmails(updatedEmails)
-    
   }
 
   const handleDelete = (idToBeRemoved:number) => {
@@ -34,27 +37,22 @@ export default function Home() {
     setEmails(updatedEmails)
   }
 
-  
-
-  const handleClickOutside = (event: MouseEvent) => {
-    if (inputRef.current && !inputRef.current.contains(event.target as Node) &&
-        dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-      setInpFocus(false)
+  const handleInputBlur = () => {
+    // Hide dropdown if the mouse is not over it
+    if (!isMouseOverDropdown.current) {
+      setInpFocus(false);
     }
   };
+  console.log(emails)
+  const handleDropdownMouseEnter = () => {
+    isMouseOverDropdown.current = true;
+  };
 
-  useEffect(() => {
-    if (inpFocus) {
-      document.addEventListener('mousedown', handleClickOutside);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [inpFocus])
-
+  const handleDropdownMouseLeave = () => {
+    isMouseOverDropdown.current = false;
+    // Optionally hide the dropdown when the mouse leaves
+    setInpFocus(false);
+  };
   return (
     <main className="flex flex-col min-h-screen items-center justify-start p-24 gap-10">
       <h1 className="">Pick user</h1>
@@ -78,6 +76,7 @@ export default function Home() {
             value={input}
             onChange={(e)=>setInput(e.target.value)}
             onFocus={() => setInpFocus(true)}
+            onBlur={handleInputBlur}
           />
 
         </div>
@@ -86,7 +85,7 @@ export default function Home() {
 
         {
           inpFocus &&
-          <div ref={dropdownRef} className="flex flex-col bg-white border-[1px] h-44 w-fit overflow-scroll">
+          <div onMouseEnter={handleDropdownMouseEnter} onMouseLeave={handleDropdownMouseLeave} className="flex flex-col bg-white border-[1px] h-44 w-fit overflow-scroll">
             {
               data.filter(item => {
                 const searchName = input.toLowerCase()
