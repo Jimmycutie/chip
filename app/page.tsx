@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import data from './data.json'
 import Image from "next/image"
 
@@ -17,7 +17,8 @@ export default function Home() {
   const [input, setInput] = useState('')
   const [emails, setEmails] = useState<Email[]>([])
   const [inpFocus, setInpFocus] = useState<boolean>(false)
-
+  const inputRef = useRef<HTMLInputElement>(null)
+  const dropdownRef = useRef<HTMLInputElement>(null)
 
   //Fuctions to add and delete the chips
   const handleAdd = (id:number) => {
@@ -33,6 +34,26 @@ export default function Home() {
     setEmails(updatedEmails)
   }
 
+  
+
+  const handleClickOutside = (event: MouseEvent) => {
+    if (inputRef.current && !inputRef.current.contains(event.target as Node) &&
+        dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      setInpFocus(false)
+    }
+  };
+
+  useEffect(() => {
+    if (inpFocus) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [inpFocus])
 
   return (
     <main className="flex flex-col min-h-screen items-center justify-start p-24 gap-10">
@@ -57,7 +78,6 @@ export default function Home() {
             value={input}
             onChange={(e)=>setInput(e.target.value)}
             onFocus={() => setInpFocus(true)}
-            onBlur={()=> setInpFocus(false)}
           />
 
         </div>
@@ -66,7 +86,7 @@ export default function Home() {
 
         {
           inpFocus &&
-          <div className="flex flex-col bg-white border-[1px] h-44 w-fit overflow-scroll">
+          <div ref={dropdownRef} className="flex flex-col bg-white border-[1px] h-44 w-fit overflow-scroll">
             {
               data.filter(item => {
                 const searchName = input.toLowerCase()
